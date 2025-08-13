@@ -17,19 +17,29 @@
 ## 2. 核心工作流 (Core Workflow)
 
 1.  **触发:** 服务通过其唯一的API端点 `POST /discover` 接收来自**任务编排服务 (Task Orchestrator)** 的HTTP请求。
-2.  **数据准备:**
-    a.  收到请求后，服务从请求体中解析出 `data_source_id` 和 `theme_name`。
+2.  **数据准备与页面抓取:**
+    a.  收到请求后，服务从请求体中解析出 `data_source_id`, `theme_name`, 以及可选的 `analysis_instructions`。
     b.  使用 `data_source_id` 查询 `data_sources` 表，获取该数据源的详细信息（主要是URL）。
-    c.  在 `raw_analysis_results` 表中为本次分析创建一个新记录，并将初始状态设置为 `processing`。这可以防止重复分析。
+    c.  在 `raw_analysis_results` 表中为本次分析创建一个新记录，并将初始状态设置为 `processing`。
+    d.  **(核心变更)** 服务启动 **Playwright** 浏览器实例，访问目标URL，等待页面动态内容加载完毕，然后提取最终渲染完成的HTML内容。
+
 3.  **Prompt工程:**
-    a.  服务根据 `theme_name` 和目标URL，动态构建一个高质量的 **Prompt**。
+    a.  服务根据 `theme_name`, `analysis_instructions` 和上一步抓取到的HTML内容，动态构建一个高质量的 **Prompt**。
     b.  **Prompt 示例:**
         ```
-        作为一名专业的数据抓取工程师，你的任务是分析以下网站，并找出所有与“公司财报”主题相关的可抓取字段。
+        作为一名专业的数据抓取工程师，你的任务是分析以下HTML内容，并找出所有与主题相关的可抓取字段。
 
-        网站URL: [从数据库中获取的URL]
+        分析主题: [来自请求的 theme_name]
 
-        请以JSON格式返回你的发现。JSON的根节点应该是一个名为 "fields" 的数组。数组中的每个对象都应包含以下三个键：
+        除了上述主题，请严格遵守以下详细指令：
+        [来自请求的 analysis_instructions, 如果提供的话]
+
+        HTML内容如下:
+        ```html
+        [此处为Playwright抓取到的完整HTML内容]
+        ```
+
+        请基于以上HTML内容，以JSON格式返回你的发现。JSON的根节点应该是一个名为 "fields" 的数组。数组中的每个对象都应包含以下三个键：
         1. "field_name": 字段的建议名称（使用英文snake_case命名法，例如 "revenue"）。
         2. "description": 对该字段的简短描述。
         3. "selector": 用于定位该字段数据的CSS选择器。
@@ -37,7 +47,7 @@
         请确保选择器尽可能精确和稳定。如果找不到任何相关字段，请返回一个空的 "fields" 数组。
         ```
 4.  **调用LLM:**
-    a.  服务将构建好的Prompt发送给外部的**大语言模型 (LLM) API**。
+    a.  服务将包含了完整HTML的Prompt发送给外部的**大语言模型 (LLM) API**。
     b.  服务将**同步等待**LLM返回结果。这是一个耗时操作，因此本服务必须能够处理长时间运行的HTTP请求。
 5.  **结果持久化:**
     a.  收到LLM的响应后，服务会进行基本的格式验证，确保返回的是一个有效的JSON。
@@ -53,7 +63,8 @@
         ```json
         {
           "data_source_id": 1,
-          "theme_name": "公司财报"
+          "theme_name": "公司财报",
+          "analysis_instructions": "(可选) 请专注于季度财报，忽略年度总结。"
         }
         ```
     *   **成功响应 (Success Response):** `200 OK`
