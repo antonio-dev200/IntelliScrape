@@ -42,6 +42,7 @@
 | `id` | `SERIAL` | `PRIMARY KEY` | 唯一标识符 |
 | `name` | `VARCHAR(255)` | `NOT NULL` | 数据源的可读名称 (如 "XX财经门户") |
 | `url` | `TEXT` | `NOT NULL` | 数据源的根URL |
+| `description` | `TEXT` | | 关于该数据源的详细备注 |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | 创建时间 |
 
 ### 2.4. `raw_analysis_results`
@@ -52,6 +53,7 @@
 | `id` | `SERIAL` | `PRIMARY KEY` | 唯一标识符 |
 | `data_source_id` | `INTEGER` | `REFERENCES data_sources(id)` | 关联的数据源ID |
 | `theme_name` | `VARCHAR(255)` | `NOT NULL` | 本次分析所使用的主题名称 |
+| `analysis_instructions` | `TEXT` | | (可选) 本次分析遵循的详细指令 |
 | `status` | `VARCHAR(50)` | `NOT NULL` | 分析任务的状态 (`processing`, `completed`, `failed`) |
 | `raw_fields_json`| `JSONB` | | 从LLM返回的原始JSON结果 |
 | `error_message` | `TEXT` | | 如果分析失败，记录错误信息 |
@@ -79,7 +81,8 @@
 | `name` | `VARCHAR(255)` | `NOT NULL` | 任务的可读名称 (如 "每日财报采集") |
 | `standard_dataset_id`| `INTEGER` | `REFERENCES standard_datasets(id)` | 关联的标准数据集ID |
 | `data_source_ids` | `INTEGER[]`| `NOT NULL` | 本次任务要抓取的数据源ID数组 |
-| `schedule_type` | `VARCHAR(50)` | | 调度类型 (`once`, `daily`, `weekly`) |
+| `schedule_cron` | `VARCHAR(100)` | | (可选) CRON表达式，定义周期性执行计划 |
+| `is_enabled` | `BOOLEAN` | `NOT NULL DEFAULT true` | 任务是否启用 |
 | `status` | `VARCHAR(50)` | `NOT NULL` | 任务状态 (`pending`, `running`, `completed`, `failed`) |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | 创建时间 |
 
