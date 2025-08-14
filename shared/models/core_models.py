@@ -32,7 +32,14 @@ class StandardDataset(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), comment="最后更新时间")
 
     # 定义关系：一个数据集可以有多个标准字段
-    standard_fields = relationship("StandardField", back_populates="dataset")
+    # lazy="selectin" 告诉SQLAlchemy在加载StandardDataset时，
+    # 使用一条额外的SELECT...IN...语句来预加载所有关联的StandardField，
+    # 从而避免N+1查询问题。
+    standard_fields = relationship(
+        "StandardField",
+        back_populates="dataset",
+        lazy="selectin"
+    )
 
 class StandardField(Base):
     """
@@ -49,7 +56,12 @@ class StandardField(Base):
     description = Column(Text, comment="字段的详细描述")
 
     # 定义关系：一个标准字段属于一个数据集
-    dataset = relationship("StandardDataset", back_populates="standard_fields")
+    # 同样为反向关系设置lazy="selectin"，保持一致性。
+    dataset = relationship(
+        "StandardDataset",
+        back_populates="standard_fields",
+        lazy="selectin"
+    )
 
 class DataSource(Base):
     """

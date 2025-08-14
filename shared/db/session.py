@@ -21,3 +21,16 @@ engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 #   - autoflush=False 表示在查询前，SQLAlchemy不会自动将会话中的“脏”对象刷新到数据库。
 # bind=engine 将这个会话工厂与我们创建的数据库引擎绑定起来。
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_db():
+    """
+    一个FastAPI依赖项，用于为每个请求提供一个数据库会话。
+    它使用Python的 'yield' 关键字来实现一个生成器，
+    这确保了无论请求处理成功还是失败，数据库会话最终都会被关闭。
+    这是管理数据库会话生命周期的标准、可靠模式。
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

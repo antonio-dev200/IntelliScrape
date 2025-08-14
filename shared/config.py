@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     # 我们提供一个默认值，主要用于本地开发和测试。
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@postgres/db")
 
+    # Celery配置
+    # Broker URL，指向我们的消息中间件（例如Redis或RabbitMQ）
+    CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+    # Result Backend URL，用于存储任务的结果
+    CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+
     class Config:
         # Pydantic的配置类，用于改变其行为
         # case_sensitive = True 表示环境变量的名称是大小写敏感的
