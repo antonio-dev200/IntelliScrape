@@ -3,23 +3,20 @@
     <header>
       <h1>IntelliScrape</h1>
       <nav>
-        <!-- Basic navigation would go here -->
-        <a href="#">Dashboard</a> |
-        <a href="#">Theme Management</a>
+        <router-link to="/">主题管理</router-link> |
+        <router-link to="/data-sources">数据源管理</router-link> |
+        <router-link to="/tasks">抓取任务管理</router-link>
+        <!-- Note: Workbench is typically navigated to from the Theme Management page -->
       </nav>
     </header>
     <main>
-      <!-- Vue Router's <router-view> would render the current page component here -->
-      <h2>Welcome to IntelliScrape</h2>
-      <p>This is the main application shell. The actual pages and components would be developed from here.</p>
+      <router-view />
     </main>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'App',
-};
+<script setup>
+// No script logic needed in the main App shell for now
 </script>
 
 <style>
@@ -28,11 +25,31 @@ export default {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 header {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
   margin-bottom: 2rem;
+  text-align: center;
+}
+header h1 {
+  margin: 0;
+}
+nav {
+  margin-top: 0.5rem;
+}
+nav a {
+  font-weight: bold;
+  color: #2c3e50;
+  text-decoration: none;
+  margin: 0 1rem;
+}
+nav a.router-link-exact-active {
+  color: #007bff;
+}
+main {
+  padding: 0 1rem;
 }
 </style>

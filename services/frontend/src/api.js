@@ -73,3 +73,26 @@ export const createCrawlTask = (taskData) => {
 export const listCrawlTasks = () => {
   return apiClient.get('/crawl-tasks/');
 };
+
+export const listStandardDatasets = () => {
+  return apiClient.get('/themes/'); // The endpoint is on the themes router
+};
+
+
+// --- Data Source Management API Calls ---
+
+export const listDataSources = () => {
+  return apiClient.get('/data-sources/');
+};
+
+export const createDataSource = (dataSourceData) => {
+  return apiClient.post('/data-sources/', dataSourceData);
+};
+
+export const updateDataSource = (id, dataSourceData) => {
+  return apiClient.put(`/data-sources/${id}`, dataSourceData);
+};
+
+export const deleteDataSource = (id) => {
+  return apiClient.delete(`/data-sources/${id}`);
+};
