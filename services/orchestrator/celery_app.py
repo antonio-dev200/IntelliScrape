@@ -9,7 +9,7 @@ from shared.config import settings
 # backend 参数指定了用于存储任务状态和结果的后端的URL。
 # 我们从全局的settings对象中读取这些URL，实现了配置与代码的分离。
 celery_app = Celery(
-    "orchestrator",
+    "intelliscrape.orchestrator",
     broker=settings.CELERY_BROKER_URL,
     backend=settings.CELERY_RESULT_BACKEND,
     include=["services.orchestrator.tasks"] # 自动发现任务的模块列表

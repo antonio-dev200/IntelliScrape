@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     # 模式发现服务 (Discovery Service) 的内部URL
     DISCOVERY_SERVICE_URL: str = os.getenv("DISCOVERY_SERVICE_URL", "http://discovery_svc:8000")
 
+    # --- 外部服务 ---
+    # 大语言模型 (LLM) 的 API Key 和基础URL
+    LLM_API_KEY: str = os.getenv("LLM_API_KEY", "your_llm_api_key_here")
+    LLM_BASE_URL: str | None = os.getenv("LLM_BASE_URL")
+
 
     class Config:
         # Pydantic的配置类，用于改变其行为

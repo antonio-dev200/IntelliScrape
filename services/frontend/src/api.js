@@ -1,14 +1,46 @@
 import axios from 'axios';
+import { useUIStore } from './stores/ui';
 
 // Create an Axios instance
 const apiClient = axios.create({
-  // The BFF service will be running on port 8000.
-  // In a real application, this would be configured via environment variables.
   baseURL: 'http://localhost:8000/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Axios Interceptors for UI State Management
+apiClient.interceptors.request.use(
+  (config) => {
+    const uiStore = useUIStore();
+    uiStore.setLoading(true);
+    uiStore.clearError();
+    return config;
+  },
+  (error) => {
+    const uiStore = useUIStore();
+    uiStore.setError(error.message || 'A request error occurred.');
+    uiStore.setLoading(false);
+    return Promise.reject(error);
+  }
+);
+
+apiClient.interceptors.response.use(
+  (response) => {
+    const uiStore = useUIStore();
+    uiStore.setLoading(false);
+    return response;
+  },
+  (error) => {
+    const uiStore = useUIStore();
+    // Extract a more specific error message if available from the API response
+    const errorMessage = error.response?.data?.detail || error.message || 'An unknown error occurred.';
+    uiStore.setError(errorMessage);
+    uiStore.setLoading(false);
+    return Promise.reject(error);
+  }
+);
+
 
 // --- Theme Management API Calls ---
 
