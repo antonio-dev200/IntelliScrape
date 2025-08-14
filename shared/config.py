@@ -11,17 +11,23 @@ class Settings(BaseSettings):
     这确保了我们的配置是类型安全的，并且与环境分离。
     """
 
-    # 数据库连接URL。
-    # 这是一个关键配置，它告诉SQLAlchemy如何连接到我们的PostgreSQL数据库。
-    # 格式: "postgresql://user:password@host:port/database"
-    # 我们提供一个默认值，主要用于本地开发和测试。
+    # --- 核心基础设施 ---
+    # 数据库连接URL
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@postgres/db")
 
-    # Celery配置
-    # Broker URL，指向我们的消息中间件（例如Redis或RabbitMQ）
-    CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
-    # Result Backend URL，用于存储任务的结果
-    CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+    # RabbitMQ 连接URL (用于Pika和Celery Broker)
+    RABBITMQ_URL: str = os.getenv("RABBITMQ_URL", "amqp://user:password@rabbitmq:5672/")
+
+    # --- Celery 配置 ---
+    # Broker URL, 指向我们的消息中间件。我们统一使用RabbitMQ。
+    CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", RABBITMQ_URL)
+    # Result Backend URL，用于存储任务的结果。可以继续使用Redis或数据库。
+    CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
+
+    # --- 服务间通信 ---
+    # 模式发现服务 (Discovery Service) 的内部URL
+    DISCOVERY_SERVICE_URL: str = os.getenv("DISCOVERY_SERVICE_URL", "http://discovery_svc:8000")
+
 
     class Config:
         # Pydantic的配置类，用于改变其行为
