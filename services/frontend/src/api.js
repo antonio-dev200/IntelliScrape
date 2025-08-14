@@ -74,6 +74,10 @@ export const listCrawlTasks = () => {
   return apiClient.get('/crawl-tasks/');
 };
 
+export const executeCrawlTask = (taskId) => {
+  return apiClient.post(`/crawl-tasks/${taskId}/execute`);
+};
+
 export const listStandardDatasets = () => {
   return apiClient.get('/themes/'); // The endpoint is on the themes router
 };
