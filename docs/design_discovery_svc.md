@@ -8,7 +8,7 @@
 
 **服务名称:** 模式发现服务 (Discovery Service)
 
-**技术栈:** Python, FastAPI, httpx, (LLM SDK, e.g., OpenAI, Gemini)
+**技术栈:** Python, FastAPI, Playwright, (LLM SDK, e.g., OpenAI, Gemini)
 
 **核心职责 (Single Responsibility):**
 *   **单一职责原则:** 本服务的唯一目标是，针对一个给定的数据源（如URL）和一个主题（如“公司财报”），调用外部大语言模型（LLM）进行分析，并以**原始、未加工**的形式将分析结果存入数据库。
