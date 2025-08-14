@@ -87,8 +87,7 @@
 | `standard_dataset_id`| `INTEGER` | `REFERENCES standard_datasets(id)` | 关联的标准数据集ID |
 | `data_source_ids` | `INTEGER[]`| `NOT NULL` | 本次任务要抓取的数据源ID数组 |
 | `schedule_cron` | `VARCHAR(100)` | | (可选) CRON表达式，定义周期性执行计划 |
-| `is_enabled` | `BOOLEAN` | `NOT NULL DEFAULT true` | 任务是否启用 |
-| `status` | `VARCHAR(50)` | `NOT NULL` | 任务状态 (`pending`, `running`, `completed`, `failed`) |
+| `status` | `VARCHAR(50)` | `NOT NULL` | 任务状态 (`pending`, `scheduled`, `running`, `completed`, `paused`, `failed`) |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | 创建时间 |
 | **索引 (Indexes)** | - | - | `standard_dataset_id`, `status` |
 

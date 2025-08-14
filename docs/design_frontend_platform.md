@@ -63,7 +63,10 @@ intelliscrape/
     3.  在模态框中，管理员需要：
         *   输入**主题名称**。
         *   从一个多选列表中勾选所有相关的**数据来源**。
-    4.  提交后，调用BFF的 `POST /api/v1/themes/analyze` 接口，并给出处理中的提示。
+    4.  提交后，调用BFF的 `POST /api/v1/themes/analyze` 接口。
+    5.  BFF会返回一个包含 `analysis_result_ids` 的响应。前端需要为每个ID启动一个**轮询 (Polling)** 机制。
+    6.  前端会每隔几秒钟，调用BFF的 `GET /api/v1/analysis-results/{id}/status` 接口来查询任务状态。
+    7.  一旦所有任务的状态都变为 `completed` 或 `failed`，前端停止轮询，并向用户显示最终结果（例如，全局成功提示或某个特定数据源的失败信息）。
 
 #### 3.2. 标准化工作台 (`/themes/:id/workbench`)
 *   **视图组件:** `views/Workbench.vue`

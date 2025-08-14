@@ -53,6 +53,12 @@ BFF 负责编排整个“主题配置与标准化”流程，该流程分为三�
         }
         ```
     *   **成功响应 (Success Response):** `202 Accepted`
+        ```json
+        {
+          "message": "Analysis tasks have been successfully dispatched.",
+          "analysis_result_ids": [101, 102, 103]
+        }
+        ```
 
 *   **`GET /api/v1/themes/{theme_name}/workbench`**
     *   **描述:** 获取“标准化工作台”所需的所有数据。
@@ -60,10 +66,21 @@ BFF 负责编排整个“主题配置与标准化”流程，该流程分为三�
     *   **成功响应 (Success Response):** `200 OK`，返回结构化JSON（详细结构待定）。
 
 *   **`POST /api/v1/themes/{theme_name}/standardize`**
-    *   **描述:** 提交最终的标准化配置。
+    *   **描述:** 提交最终的标准化配置。在此接口的实现中，当系统创建或更新 `standard_datasets` 记录时，必须根据用户提供的 `name` (如“公司财务报告”)，通过一个固定的、可复现的算法（如 `slugify`）来生成一个合法的数据库物理表名 `table_name` (如 `data_company_financial_reports`)。
     *   **路径参数:** `theme_name` (string, required)
     *   **请求体 (Request Body):** 包含字段映射、新增标准、忽略列表等信息的复杂JSON对象。
     *   **成功响应 (Success Response):** `200 OK`
+
+*   **`GET /api/v1/analysis-results/{id}/status`**
+    *   **描述:** 查询单个AI分析任务的当前状态。
+    *   **路径参数:** `id` (integer, required) - 对应 `raw_analysis_results` 表的ID。
+    *   **成功响应 (Success Response):** `200 OK`
+        ```json
+        {
+          "analysis_result_id": 101,
+          "status": "completed"
+        }
+        ```
 
 ### 3.2 抓取任务管理 (Crawl Task Management)
 *   **`POST /api/v1/crawl-tasks`**
@@ -89,3 +106,6 @@ BFF 负责编排整个“主题配置与标准化”流程，该流程分为三�
     *   智能分析服务 (Analysis Service): 可能用于获取分析报告。
 *   **数据存储 (Data Stores):**
     *   PostgreSQL (应用主数据库): 所有核心业务表的读写操作。
+
+## 5. 长期演进建议 (Long-term Evolution)
+*   **标准化服务化:** “标准化工作台”的数据归并与推荐算法，在未来可能会变得非常复杂（例如引入机器学习模型）。为了避免BFF服务过于臃肿，并保持其作为“网关”的纯粹性，长期来看，可以将这部分计算密集型逻辑剥离出去，成立一个独立的 **标准化服务 (Standardization Service)**。BFF仅负责调用该服务并透传结果。在项目MVP阶段，该逻辑仍保留在BFF中。
