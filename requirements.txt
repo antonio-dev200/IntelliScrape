@@ -1,0 +1,23 @@
+# -- Web Framework --
+fastapi
+uvicorn[standard]
+
+# -- Database & ORM --
+sqlalchemy
+psycopg2-binary
+alembic
+
+# -- Task Queue --
+celery
+redis
+
+# -- Data Validation & Settings --
+pydantic
+
+# -- Web Scraping & HTTP --
+playwright
+httpx
+
+# -- Utilities --
+python-slugify
+tenacity
