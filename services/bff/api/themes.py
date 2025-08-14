@@ -38,9 +38,15 @@ class StandardizeField(BaseModel):
     description: str = ""
     data_type: str # e.g., "String", "Integer", "Text"
 
+class FieldNameMapping(BaseModel):
+    field_name: str
+    selector: str
+
 class SourceConfigPayload(BaseModel):
     data_source_id: int
-    field_selectors_json: Dict[str, Any]
+    # The payload from the frontend will use field_name for mapping
+    mappings: List[FieldNameMapping]
+    extra_fields: List[Dict[str, str]] # e.g., [{"field_name": "rating", "selector": ".rating"}]
 
 class StandardizeRequest(BaseModel):
     theme_name: str
@@ -116,7 +122,12 @@ async def standardize_theme(request: StandardizeRequest, db: Session = Depends(g
                 )
                 db.add(new_field)
 
-        # 3. 为每个数据源创建 CrawlConfig
+        # 3. 创建一个 field_name -> field_id 的映射
+        db.flush() # 确保所有新创建的StandardField都有ID
+        all_fields_in_dataset = db.query(StandardField).filter(StandardField.dataset_id == dataset.id).all()
+        name_to_id_map = {f.field_name: f.id for f in all_fields_in_dataset}
+
+        # 4. 为每个数据源创建 CrawlConfig
         for source_config in request.source_configs:
             # (可选) 停用旧配置
             db.query(CrawlConfig).filter(
@@ -124,11 +135,27 @@ async def standardize_theme(request: StandardizeRequest, db: Session = Depends(g
                 CrawlConfig.standard_dataset_id == dataset.id
             ).update({"status": "inactive"})
 
+            # 构建将要存储到数据库的 field_selectors_json
+            # 它需要使用 standard_field_id
+            db_mappings = []
+            for mapping in source_config.mappings:
+                field_id = name_to_id_map.get(mapping.field_name)
+                if field_id:
+                    db_mappings.append({
+                        "standard_field_id": field_id,
+                        "selector": mapping.selector
+                    })
+
+            final_selectors_json = {
+                "mappings": db_mappings,
+                "extra_fields": source_config.extra_fields
+            }
+
             # 创建新配置
             new_crawl_config = CrawlConfig(
                 data_source_id=source_config.data_source_id,
                 standard_dataset_id=dataset.id,
-                field_selectors_json=source_config.field_selectors_json,
+                field_selectors_json=final_selectors_json,
                 status="active",
                 version=1 # 简化处理，版本管理可后续增强
             )
