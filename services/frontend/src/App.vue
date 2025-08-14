@@ -4,6 +4,7 @@
       <h1>IntelliScrape</h1>
       <nav>
         <router-link to="/">主题管理</router-link> |
+        <router-link to="/data-sources">数据源管理</router-link> |
         <router-link to="/tasks">抓取任务管理</router-link>
         <!-- Note: Workbench is typically navigated to from the Theme Management page -->
       </nav>

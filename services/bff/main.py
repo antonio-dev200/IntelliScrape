@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .api import themes, tasks
+from .api import themes, tasks, data_sources
 
 # 创建BFF服务的FastAPI应用实例
 app = FastAPI(
@@ -12,6 +12,7 @@ app = FastAPI(
 # 将来自不同模块的路由挂载到主应用上
 app.include_router(themes.router, prefix="/api/v1")
 app.include_router(tasks.router, prefix="/api/v1")
+app.include_router(data_sources.router, prefix="/api/v1")
 
 
 @app.get("/health", summary="健康检查", tags=["Monitoring"])

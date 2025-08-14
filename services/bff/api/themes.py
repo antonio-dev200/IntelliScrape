@@ -266,7 +266,18 @@ async def trigger_analysis(request: AnalyzeRequest):
         )
 
 
-@router.get("/")
-async def list_themes():
-    """Placeholder endpoint to list themes."""
-    return [{"name": "Company Financials"}, {"name": "Real Estate Listings"}]
+class StandardDatasetResponse(BaseModel):
+    id: int
+    name: str
+    description: str | None = None
+
+    class Config:
+        orm_mode = True
+
+@router.get("/", response_model=List[StandardDatasetResponse])
+async def list_standard_datasets(db: Session = Depends(get_db)):
+    """
+    列出所有已创建的标准数据集。
+    """
+    datasets = db.query(StandardDataset).all()
+    return datasets

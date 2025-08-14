@@ -25,9 +25,16 @@
       <p v-if="error" class="error">查询状态失败: {{ error }}</p>
       <ul v-if="analysisStatuses.length > 0" class="status-list">
         <li v-for="status in analysisStatuses" :key="status.data_source_id" :class="status.status">
-          <strong>数据源ID {{ status.data_source_id }}:</strong>
-          <span class="status-badge">{{ status.status }}</span>
-          <small v-if="status.error_message" class="error-detail">错误: {{ status.error_message }}</small>
+          <div>
+            <strong>数据源ID {{ status.data_source_id }}:</strong>
+            <span class="status-badge">{{ status.status }}</span>
+            <small v-if="status.error_message" class="error-detail">错误: {{ status.error_message }}</small>
+          </div>
+          <div v-if="status.status === 'completed'" class="workbench-link">
+            <router-link :to="{ name: 'StandardizationWorkbench', params: { themeName: themeName } }">
+              前往工作台 &rarr;
+            </router-link>
+          </div>
         </li>
       </ul>
       <p v-else>当前主题没有分析任务。</p>
@@ -137,8 +144,16 @@ button:disabled {
   text-align: left;
 }
 .status-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 0.75rem;
   border-bottom: 1px solid #eee;
+}
+.workbench-link a {
+  text-decoration: none;
+  font-weight: bold;
+  color: #007bff;
 }
 .status-list li:last-child {
   border-bottom: none;
