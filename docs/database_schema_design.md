@@ -33,6 +33,7 @@
 | `column_name` | `VARCHAR(255)` | `NOT NULL` | 在物理数据表中对应的列名 (如 "total_revenue") |
 | `data_type` | `VARCHAR(50)` | `NOT NULL` | 该字段在物理表中的数据类型 (如 "NUMERIC(18, 2)") |
 | `description` | `TEXT` | | 字段的详细描述 |
+| **索引 (Indexes)** | - | - | `dataset_id` |
 
 ### 2.3. `data_sources`
 存储数据来源的信息，通常是网站。
@@ -58,6 +59,7 @@
 | `raw_fields_json`| `JSONB` | | 从LLM返回的原始JSON结果 |
 | `error_message` | `TEXT` | | 如果分析失败，记录错误信息 |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | 创建时间 |
+| **索引 (Indexes)** | - | - | `data_source_id`, `status` |
 
 ### 2.5. `crawl_configs`
 存储经过“标准化”工作台确认后的，针对特定数据源和特定数据集的抓取配置。
@@ -69,8 +71,11 @@
 | `standard_dataset_id`| `INTEGER` | `REFERENCES standard_datasets(id)` | 关联的标准数据集ID |
 | `version` | `INTEGER` | `NOT NULL DEFAULT 1` | 配置的版本号 |
 | `status` | `VARCHAR(50)` | `NOT NULL` | 配置状态 (`active`, `inactive`) |
-| `field_selectors_json`| `JSONB` | `NOT NULL` | 包含字段映射和选择器的JSON |
+| `list_item_selector` | `TEXT` | | (可选) 列表页中每个条目的选择器 |
+| `detail_link_selector` | `TEXT` | | (可选) 在列表条目中，详情页链接的选择器 |
+| `field_selectors_json`| `JSONB` | `NOT NULL` | 包含详情页字段映射和选择器的JSON |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | 创建时间 |
+| **索引 (Indexes)** | - | - | `data_source_id`, `standard_dataset_id`, `status` |
 
 ### 2.6. `crawl_tasks`
 存储用户创建的数据抓取任务。
@@ -85,6 +90,7 @@
 | `is_enabled` | `BOOLEAN` | `NOT NULL DEFAULT true` | 任务是否启用 |
 | `status` | `VARCHAR(50)` | `NOT NULL` | 任务状态 (`pending`, `running`, `completed`, `failed`) |
 | `created_at` | `TIMESTAMPTZ` | `DEFAULT NOW()` | 创建时间 |
+| **索引 (Indexes)** | - | - | `standard_dataset_id`, `status` |
 
 ## 3. 动态数据表
 
