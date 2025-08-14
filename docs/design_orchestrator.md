@@ -46,23 +46,26 @@
 # src/orchestrator/tasks.py (示例)
 
 from .celery_app import app
+from ..config import settings # 假设使用一个集中的配置模块
 import httpx
 
-DISCOVERY_SERVICE_URL = "http://discovery-svc/discover"
-
 @app.task(bind=True, max_retries=3, default_retry_delay=60)
-def trigger_site_analysis(self, data_source_id: int, theme_name: str):
+def trigger_site_analysis(self, data_source_id: int, theme_name: str, analysis_instructions: str = None):
     """
     向模式发现服务发起一个异步的站点分析请求。
     """
     try:
+        # 从配置中获取服务地址
+        discovery_service_url = settings.DISCOVERY_SERVICE_URL
+
         # 使用异步HTTP客户端发起请求
         with httpx.Client() as client:
-            response = client.post(
-                DISCOVERY_SERVICE_URL,
-                json={"data_source_id": data_source_id, "theme_name": theme_name},
-                timeout=10.0
-            )
+            payload = {
+                "data_source_id": data_source_id,
+                "theme_name": theme_name,
+                "analysis_instructions": analysis_instructions
+            }
+            response = client.post(discovery_service_url, json=payload, timeout=10.0)
             response.raise_for_status()
     except httpx.RequestError as exc:
         # 请求失败，触发Celery的重试机制
@@ -90,3 +93,6 @@ def execute_crawl_task(self, task_id: int):
 *   **数据存储 (Data Stores):**
     *   PostgreSQL (应用主数据库): 读取 `crawl_tasks`, `crawl_configs` 等配置表。
     *   RabbitMQ / Kafka (消息队列): 向 `extraction_queue` 推送消息。
+
+## 5. 配置管理 (Configuration)
+*   **服务地址:** 所有下游服务的地址（如模式发现服务）都不能硬编码。必须从外部配置（如环境变量）中加载，以确保在不同环境中的灵活性和安全性。
