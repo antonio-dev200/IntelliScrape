@@ -78,3 +78,29 @@ async def list_crawl_tasks(skip: int = 0, limit: int = 100, db: Session = Depend
     """
     tasks = db.query(CrawlTask).offset(skip).limit(limit).all()
     return tasks
+
+@router.post("/{task_id}/execute", status_code=202)
+async def execute_task_manually(task_id: int, db: Session = Depends(get_db)):
+    """
+    手动触发一个已创建的抓取任务立即执行。
+    """
+    task = db.query(CrawlTask).filter(CrawlTask.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Crawl task not found.")
+
+    try:
+        celery_app.send_task(
+            "orchestrator.execute_crawl_task",
+            args=[task.id]
+        )
+        # 更新任务状态
+        task.status = "in_progress"
+        db.commit()
+    except Exception as e:
+        logger.error(f"Failed to manually trigger crawl task {task.id}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to trigger task. Could not connect to the message broker: {e}"
+        )
+
+    return {"message": f"Task {task_id} has been triggered for execution."}

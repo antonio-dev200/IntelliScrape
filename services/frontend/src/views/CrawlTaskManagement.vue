@@ -51,6 +51,7 @@
             <th>数据源ID</th>
             <th>CRON</th>
             <th>状态</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody>
@@ -61,6 +62,11 @@
             <td>{{ task.data_source_ids.join(', ') }}</td>
             <td>{{ task.schedule_cron || 'N/A' }}</td>
             <td><span class="status-badge" :class="task.status">{{ task.status }}</span></td>
+            <td>
+              <button class="execute" @click="handleExecuteTask(task.id)" :disabled="isLoading">
+                立即执行
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -70,9 +76,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, onUnmounted } from 'vue';
 import { useUIStore } from '../stores/ui';
-import { listCrawlTasks, createCrawlTask, listStandardDatasets, listDataSources } from '../api';
+import { listCrawlTasks, createCrawlTask, executeCrawlTask, listStandardDatasets, listDataSources } from '../api';
 import { storeToRefs } from 'pinia';
 
 const uiStore = useUIStore();
@@ -133,7 +139,23 @@ const handleCreateTask = async () => {
 
 onMounted(() => {
   fetchInitialData();
+  // Poll for task status updates
+  const pollingInterval = setInterval(fetchTasks, 5000);
+  onUnmounted(() => {
+    clearInterval(pollingInterval);
+  });
 });
+
+const handleExecuteTask = async (taskId) => {
+  try {
+    await executeCrawlTask(taskId);
+    alert(`任务 ${taskId} 已成功触发执行！`);
+    // Immediately fetch tasks to reflect the "in_progress" status
+    fetchTasks();
+  } catch (e) {
+    console.error(`Failed to execute task ${taskId}:`, e);
+  }
+};
 </script>
 
 <style scoped>
